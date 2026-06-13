@@ -1,5 +1,5 @@
 export const AppleRule: RuleDefinition = {
-  name: 'Apple',
+  name: 'PerfectPanel-Apple',
   description: 'Apple 规则集，匹配 Apple 服务。',
   provider: {
     type: 'http',

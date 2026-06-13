@@ -1083,6 +1083,8 @@ interface RuleDefinition {
   group: string;
   /** 该规则的默认代理偏好：direct-first 或 outbound-first */
   proxyPreference?: 'direct-first' | 'outbound-first';
+  /** 父代理组名称，设置后该组 proxies 列表的第一个选项将自动设为 parentGroup */
+  parentGroup?: string;
 }
 
 interface ProxyProviderExtend extends ProxyProvider {

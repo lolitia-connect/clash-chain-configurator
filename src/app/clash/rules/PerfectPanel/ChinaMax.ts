@@ -1,5 +1,5 @@
 export const ChinaMaxRule: RuleDefinition = {
-  name: 'ChinaMax',
+  name: 'PerfectPanel-ChinaMax',
   description: 'ChinaMax 规则集，匹配中国大陆流量。',
   provider: {
     type: 'http',

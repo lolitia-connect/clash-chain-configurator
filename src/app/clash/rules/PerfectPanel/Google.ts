@@ -1,5 +1,5 @@
 export const GoogleRule: RuleDefinition = {
-  name: 'Google',
+  name: 'PerfectPanel-Google',
   description: 'Google 规则集，匹配 Google 服务。',
   provider: {
     type: 'http',

@@ -1,5 +1,5 @@
 export const HBORule: RuleDefinition = {
-  name: 'HBO',
+  name: 'PerfectPanel-HBO',
   description: 'HBO 规则集，匹配 HBO 相关服务。',
   provider: {
     type: 'http',
@@ -8,6 +8,7 @@ export const HBORule: RuleDefinition = {
     url: 'https://cdn.jsdmirror.com/gh/perfect-panel/rules/rule/Clash/HBO/HBO.yaml',
     interval: 86400,
   },
-  group: '📺 GlobalMedia',
+  group: 'HBO',
+  parentGroup: '📺 GlobalMedia',
   proxyPreference: 'outbound-first',
 };

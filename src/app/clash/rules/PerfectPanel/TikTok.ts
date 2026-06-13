@@ -1,5 +1,5 @@
 export const TikTokRule: RuleDefinition = {
-  name: 'TikTok',
+  name: 'PerfectPanel-TikTok',
   description: 'TikTok 规则集，匹配 TikTok 服务。',
   provider: {
     type: 'http',
@@ -8,6 +8,7 @@ export const TikTokRule: RuleDefinition = {
     url: 'https://cdn.jsdmirror.com/gh/perfect-panel/rules/rule/Clash/TikTok/TikTok.yaml',
     interval: 86400,
   },
-  group: '📺 GlobalMedia',
+  group: 'TikTok',
+  parentGroup: '📺 GlobalMedia',
   proxyPreference: 'outbound-first',
 };

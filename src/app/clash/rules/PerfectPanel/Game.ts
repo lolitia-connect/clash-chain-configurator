@@ -1,5 +1,5 @@
 export const GameRule: RuleDefinition = {
-  name: 'Game',
+  name: 'PerfectPanel-Game',
   description: 'Game 规则集，匹配游戏服务。',
   provider: {
     type: 'http',

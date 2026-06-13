@@ -1,5 +1,5 @@
 export const GeminiRule: RuleDefinition = {
-  name: 'Gemini',
+  name: 'PerfectPanel-Gemini',
   description: 'Gemini 规则集，匹配 Gemini 服务。',
   provider: {
     type: 'http',

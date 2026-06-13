@@ -1,5 +1,5 @@
 export const ClaudeRule: RuleDefinition = {
-  name: 'Claude',
+  name: 'PerfectPanel-Claude',
   description: 'Claude 规则集，匹配 Claude 服务。',
   provider: {
     type: 'http',

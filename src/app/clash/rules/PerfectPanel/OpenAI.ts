@@ -1,5 +1,5 @@
 export const OpenAIRule: RuleDefinition = {
-  name: 'OpenAI',
+  name: 'PerfectPanel-OpenAI',
   description: 'OpenAI 规则集，匹配 OpenAI 服务。',
   provider: {
     type: 'http',

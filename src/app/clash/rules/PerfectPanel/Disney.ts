@@ -1,5 +1,5 @@
 export const DisneyRule: RuleDefinition = {
-  name: 'Disney',
+  name: 'PerfectPanel-Disney',
   description: 'Disney 规则集，匹配 Disney 服务。',
   provider: {
     type: 'http',

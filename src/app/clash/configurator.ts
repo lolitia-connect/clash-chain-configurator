@@ -172,17 +172,22 @@ export default class ConfigConfigurator {
       '🚀 Outbound', '📤 Auto',
       '🎯 Direct', '🐠 Final',
     ]);
-    const groupMap = new Map<string, 'direct-first' | 'outbound-first'>();
+    const groupMap = new Map<string, { preference: 'direct-first' | 'outbound-first'; parentGroup?: string }>();
     defaultRuleDefinitions.forEach((rule) => {
       if (!builtinNames.has(rule.group) && !groupMap.has(rule.group)) {
-        groupMap.set(rule.group, rule.proxyPreference || 'outbound-first');
+        groupMap.set(rule.group, {
+          preference: rule.proxyPreference || 'outbound-first',
+          parentGroup: rule.parentGroup,
+        });
       }
     });
-    groupMap.forEach((preference, groupName) => {
-      const proxies =
+    groupMap.forEach(({ preference, parentGroup }, groupName) => {
+      const baseProxies =
         preference === 'direct-first'
           ? ['🎯 Direct', '🚀 Outbound']
           : ['🚀 Outbound', '🎯 Direct'];
+
+      const proxies = parentGroup ? [parentGroup, ...baseProxies] : baseProxies;
 
       groups.push({
         name: groupName,

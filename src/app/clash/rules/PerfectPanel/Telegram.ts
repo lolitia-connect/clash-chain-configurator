@@ -1,5 +1,5 @@
 export const TelegramRule: RuleDefinition = {
-  name: 'Telegram',
+  name: 'PerfectPanel-Telegram',
   description: 'Telegram 规则集，匹配 Telegram 服务。',
   provider: {
     type: 'http',

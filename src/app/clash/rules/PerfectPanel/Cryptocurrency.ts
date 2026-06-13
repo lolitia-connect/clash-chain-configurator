@@ -1,5 +1,5 @@
 export const CryptocurrencyRule: RuleDefinition = {
-  name: 'Cryptocurrency',
+  name: 'PerfectPanel-Cryptocurrency',
   description: 'Cryptocurrency 规则集，匹配加密货币服务。',
   provider: {
     type: 'http',

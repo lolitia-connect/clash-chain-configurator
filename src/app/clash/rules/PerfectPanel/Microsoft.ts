@@ -1,5 +1,5 @@
 export const MicrosoftRule: RuleDefinition = {
-  name: 'Microsoft',
+  name: 'PerfectPanel-Microsoft',
   description: 'Microsoft 规则集，匹配 Microsoft 服务。',
   provider: {
     type: 'http',

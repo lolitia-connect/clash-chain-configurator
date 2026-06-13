@@ -1,5 +1,5 @@
 export const GlobalMediaRule: RuleDefinition = {
-  name: 'GlobalMedia',
+  name: 'PerfectPanel-GlobalMedia',
   description: 'GlobalMedia 规则集，用于合并多媒体流量。',
   provider: {
     type: 'http',

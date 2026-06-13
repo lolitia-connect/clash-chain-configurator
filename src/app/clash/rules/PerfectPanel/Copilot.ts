@@ -1,5 +1,5 @@
 export const CopilotRule: RuleDefinition = {
-  name: 'Copilot',
+  name: 'PerfectPanel-Copilot',
   description: 'Copilot 规则集，匹配 Copilot 服务。',
   provider: {
     type: 'http',

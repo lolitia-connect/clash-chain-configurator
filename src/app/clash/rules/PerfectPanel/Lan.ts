@@ -1,5 +1,5 @@
 export const LanRule: RuleDefinition = {
-  name: 'Lan',
+  name: 'PerfectPanel-Lan',
   description: 'Lan 规则集，匹配局域网流量。',
   provider: {
     type: 'http',
