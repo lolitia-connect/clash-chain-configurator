@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ConfigConfigurator from './clash/configurator';
@@ -228,22 +227,10 @@ export default function App() {
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <h1 className="text-lg sm:text-2xl font-bold">Clash 链式代理配置器</h1>
-            <a
-              href="https://x.com/shift_neo"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              by
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-              迷雾NEO
-            </a>
+            <h1 className="text-lg sm:text-2xl font-bold">Clash 链式配置生成器</h1>
           </div>
           <a
-            href="https://github.com/qinhuaihe/clash-chain-configurator"
+            href="https://github.com/lolitia-connect/clash-chain-configurator"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -255,24 +242,13 @@ export default function App() {
       </header>
 
       <div className="container mx-auto px-3 sm:px-4 pt-16 sm:pt-20 pb-4 space-y-4 sm:space-y-8">
-        <div className="flex justify-center">
-          <Image
-            src="/clash-proxy-logo.png"
-            alt="Clash 链式代理配置器"
-            width={200}
-            height={200}
-            className="w-32 h-32 sm:w-48 sm:h-48 md:w-[200px] md:h-[200px]"
-            priority
-          />
-        </div>
-
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 sm:p-4 text-xs sm:text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
           <p>
             🔒
             本应用是开源的纯客户端应用，不会向任何服务器传输您的数据，所有数据均存储在浏览器本地，请放心使用。使用说明请见
             <a
               className="underline"
-              href="https://github.com/qinhuaihe/clash-chain-configurator?tab=readme-ov-file#%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E"
+              href="https://github.com/lolitia-connect/clash-chain-configurator?tab=readme-ov-file#%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E"
               target="noopener noreferrer"
             >
               代码仓库
