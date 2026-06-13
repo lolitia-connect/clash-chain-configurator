@@ -10,5 +10,5 @@ export const GithubRule: RuleDefinition = {
   },
   group: 'Github',
   parentGroup: '🪟 Microsoft',
-  proxyPreference: 'direct-first',
+  proxyPreference: 'outbound-first',
 };
