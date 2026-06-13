@@ -7,7 +7,7 @@
 # Big-picture Architecture
 - UI: React + Next App Router. Main UI is `src/app/app.tsx` which wires dialogs and lists to a single `ConfigConfigurator` instance.
 - Config generation: `src/app/clash/configurator.ts` reads `src/app/clash/baseConfig.yaml` and combines `proxy-providers`, `proxies` and `proxy-groups` to produce final YAML via `js-yaml`.
-- Data surface: two in-browser state sets persisted to `localStorage` using keys `clash-chain-providers` and `clash-chain-proxy-nodes` (see `src/app/app.tsx`).
+- Data surface: four in-browser state sets persisted to `localStorage` using keys `clash-chain-providers` (入口订阅), `clash-chain-landing-providers` (落地订阅), `clash-chain-entry-proxy-nodes` (入口手动节点), `clash-chain-landing-proxy-nodes` (落地手动节点) (see `src/app/app.tsx`).
 
 # Key Patterns & Conventions (project-specific)
 - Provider types: `http` or `inline`. `http` expects a `url` + `interval`; `inline` accepts YAML payloads. Validation uses `zod` in `src/components/ProviderDialog.tsx`.

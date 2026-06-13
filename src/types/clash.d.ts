@@ -1061,9 +1061,37 @@ interface ProxyProvider {
   payload?: ProxyNode[];
 }
 
+interface RuleProvider {
+  type: 'http' | 'file' | 'inline' | string;
+  behavior?: string;
+  format?: string;
+  url?: string;
+  interval?: number;
+  path?: string;
+  proxy?: string;
+  header?: Record<string, string[] | undefined>;
+  [key: string]: any;
+}
+
+type RuleSet = string;
+
+interface RuleDefinition {
+  name: string;
+  description?: string;
+  provider: RuleProvider;
+  /** 所属代理组名称，如 '🍎 Apple' */
+  group: string;
+  /** 该规则的默认代理偏好：direct-first 或 outbound-first */
+  proxyPreference?: 'direct-first' | 'outbound-first';
+}
+
 interface ProxyProviderExtend extends ProxyProvider {
   name: string;
   payloadContent?: string;
+  /** 自定义节点名称前缀，生成时写入 override.additional-prefix */
+  prefix?: string;
+  /** 是否为落地节点 */
+  landing?: boolean;
 }
 
 /**
@@ -1113,6 +1141,9 @@ interface ProxyGroup extends HealthCheckOptions {
   /** [可选] 自动包含所有在配置中定义的代理提供者 */
   'include-all-providers'?: boolean;
 
+  /** [可选] 链式代理 - 通过指定的代理组/节点出站 */
+  'dialer-proxy'?: string;
+
   // 对于 Select/Fallback/URL-Test/Load-Balance 组的特殊过滤选项
   /** [可选] 是否包含所有直接代理节点和 provider 节点。注意与 include-all-proxies/providers 的区别 */
   'include-all'?: boolean;
@@ -1140,9 +1171,10 @@ interface HealthCheckOptions {
 
 interface ClashConfig {
   'proxy-providers': ClashProxyProviders;
+  'rule-providers': Record<string, RuleProvider>;
   'proxy-groups': ProxyGroup[];
   proxies: ProxyNode[];
-  rules: string[];
+  rules: RuleSet[];
   dns: { [key: string]: any };
   [key: string]: any;
 }

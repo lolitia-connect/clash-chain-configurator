@@ -1,60 +1,245 @@
-import baseConfig from './baseConfig.yaml';
+import { defaultConfig } from './defaultConfig';
+import { defaultRuleDefinitions } from './ruleInit';
 import jsyaml from 'js-yaml';
 
-export type Options = {
-  providers: ProxyProviderExtend[];
-  finalProxyNodes: ProxyNode;
-};
+function extractHostname(url: string): string | null {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
 
 export default class ConfigConfigurator {
-  config = baseConfig as ClashConfig;
+  config = { ...defaultConfig } as ClashConfig;
 
-  constructor() {}
+  constructor() {
+    this.normalizeConfig();
+  }
+
+  private normalizeConfig() {
+    if (!this.config || typeof this.config !== 'object') {
+      this.config = {} as ClashConfig;
+    }
+
+    if (Array.isArray(this.config['proxy-providers'])) {
+      this.config['proxy-providers'] = {} as ClashProxyProviders;
+    }
+
+    if (!this.config['proxy-providers'] || typeof this.config['proxy-providers'] !== 'object') {
+      this.config['proxy-providers'] = {} as ClashProxyProviders;
+    }
+
+    if (!Array.isArray(this.config.proxies)) {
+      this.config.proxies = [];
+    }
+
+    if (!Array.isArray(this.config['proxy-groups'])) {
+      this.config['proxy-groups'] = [];
+    }
+
+    if (!Array.isArray(this.config.rules)) {
+      this.config.rules = [];
+    }
+  }
 
   setProviders(providers: ProxyProviderExtend[]) {
-    this.config['proxy-providers'] = {};
+    this.normalizeConfig();
+    this.config['proxy-providers'] = {} as ClashProxyProviders;
+
+    const entryProviders: string[] = [];
+    const landingProviders: string[] = [];
+    const providerHosts: string[] = [];
+
     providers.forEach((x) => {
-      this.config['proxy-providers'][x.name] = {
+      const providerConfig: ProxyProvider = {
         type: x.type,
         url: x.url || undefined,
         interval: x.interval,
-        override: {
-          'additional-prefix': providers.length > 1 ? `${x.name} ` : undefined,
-        },
         payload: x.payloadContent ? (jsyaml.load(x.payloadContent) as ProxyNode[]) : undefined,
       };
+      if (x.prefix) {
+        providerConfig.override = { 'additional-prefix': x.prefix };
+      }
+      this.config['proxy-providers'][x.name] = providerConfig;
+
+      if (x.landing) {
+        landingProviders.push(x.name);
+      } else {
+        entryProviders.push(x.name);
+      }
+
+      if (x.url) {
+        const host = extractHostname(x.url);
+        if (host) providerHosts.push(host);
+      }
     });
 
-    this.configure();
+    // 缓存供 setFinalProxyNodes 复用
+    this._cachedEntryProviders = entryProviders;
+    this._cachedLandingProviders = landingProviders;
+    this._cachedProviderHosts = providerHosts;
+
+    this.configure(entryProviders, landingProviders, providerHosts);
   }
 
-  setFinalProxyNodes(finalProxyNodes: ProxyNode[]) {
-    this.config.proxies = finalProxyNodes;
-    this.configure();
+  private _cachedEntryProviders: string[] = [];
+  private _cachedLandingProviders: string[] = [];
+  private _cachedProviderHosts: string[] = [];
+
+  setFinalProxyNodes(entryNodes: ProxyNode[], landingNodes: ProxyNode[]) {
+    this.normalizeConfig();
+    (this as any)._entryNodes = entryNodes;
+    (this as any)._landingNodes = landingNodes;
+    // 用缓存的 provider 信息重新生成配置
+    this.configure(this._cachedEntryProviders, this._cachedLandingProviders, this._cachedProviderHosts);
   }
 
-  private configure() {
-    const providerKeys = Object.keys(this.config['proxy-providers']);
-    if (!providerKeys.length) return;
-
-    if (this.config.proxies.length) {
-      this.config.proxies.forEach((x) => (x['dialer-proxy'] = '手动选择'));
-    }
-    this.config['proxy-groups'] = [
-      {
-        name: '我的代理',
-        type: 'select',
-        proxies: [...this.config.proxies.map((x) => x.name), '手动选择'],
-      },
-      { name: '手动选择', type: 'select', use: [...providerKeys], proxies: ['自动选择'] },
-      {
-        name: '自动选择',
-        type: 'url-test',
-        use: [...providerKeys],
-        url: 'http://www.gstatic.com/generate_204',
-        interval: 3600,
-      },
+  private configure(
+    entryProviders: string[],
+    landingProviders: string[],
+    providerHosts: string[],
+  ) {
+    const allProviderNames = [
+      ...Object.keys(this.config['proxy-providers']),
     ];
+
+    // ── 手动节点 → inline provider ──
+    const entryNodes: ProxyNode[] = (this as any)._entryNodes || [];
+    const landingNodes: ProxyNode[] = (this as any)._landingNodes || [];
+
+    // 无订阅且无手动节点时跳过
+    if (!allProviderNames.length && !entryNodes.length && !landingNodes.length) return;
+
+    if (entryNodes.length > 0) {
+      this.config['proxy-providers']['Inbound Manual'] = {
+        type: 'inline',
+        payload: entryNodes,
+      } as ProxyProvider;
+    }
+    if (landingNodes.length > 0) {
+      this.config['proxy-providers']['Outbound Manual'] = {
+        type: 'inline',
+        payload: landingNodes,
+      } as ProxyProvider;
+    }
+
+    // 刷新 provider 列表（包含新增的 inline）
+    const allNames = Object.keys(this.config['proxy-providers']);
+    const entryProviderNames = [
+      ...entryProviders,
+      ...(entryNodes.length > 0 ? ['Inbound Manual'] : []),
+    ];
+    const landingProviderNames = [
+      ...landingProviders,
+      ...(landingNodes.length > 0 ? ['Outbound Manual'] : []),
+    ];
+
+    // ── Proxy Groups ──
+    const groups: ProxyGroup[] = [];
+
+    // 统一的 use 列表
+    const inboundUse = entryProviderNames.length > 0 ? entryProviderNames : allNames;
+    const outboundUse = landingProviderNames.length > 0 ? landingProviderNames : allNames;
+    const sharedUse = landingProviderNames.length > 0 ? landingProviderNames : allNames;
+
+    // 🚇 Inbound：入口选择组（无 dialer-proxy，它是链的起点）
+    groups.push({
+      name: '🚇 Inbound',
+      type: 'select',
+      proxies: ['📥 Auto', '🎯 Direct'],
+      use: [...inboundUse],
+    });
+
+    // 🚀 Outbound：落地选择组，dialer-proxy 链式指向 Inbound
+    groups.push({
+      name: '🚀 Outbound',
+      type: 'select',
+      proxies: ['📤 Auto'],
+      use: [...outboundUse],
+      'dialer-proxy': '🚇 Inbound',
+    });
+
+    // 每个 Group 对应一个代理组（按 group 名去重，排除与内置组同名的）
+    const builtinNames = new Set([
+      '🚇 Inbound', '📥 Auto',
+      '🚀 Outbound', '📤 Auto',
+      '🎯 Direct', '🐠 Final',
+    ]);
+    const groupMap = new Map<string, 'direct-first' | 'outbound-first'>();
+    defaultRuleDefinitions.forEach((rule) => {
+      if (!builtinNames.has(rule.group) && !groupMap.has(rule.group)) {
+        groupMap.set(rule.group, rule.proxyPreference || 'outbound-first');
+      }
+    });
+    groupMap.forEach((preference, groupName) => {
+      const proxies =
+        preference === 'direct-first'
+          ? ['🎯 Direct', '🚀 Outbound']
+          : ['🚀 Outbound', '🎯 Direct'];
+
+      groups.push({
+        name: groupName,
+        type: 'select',
+        proxies,
+        use: [...sharedUse],
+        'dialer-proxy': '🚇 Inbound',
+      });
+    });
+
+    // 🎯 Direct（隐藏组）
+    groups.push({ name: '🎯 Direct', type: 'select', proxies: ['DIRECT'], hidden: true });
+
+    // 🐠 Final
+    groups.push({
+      name: '🐠 Final',
+      type: 'select',
+      proxies: ['🚀 Outbound', '🎯 Direct'],
+      use: [...sharedUse],
+      'dialer-proxy': '🚇 Inbound',
+    });
+
+    // 📥 Auto：入口自动测速组（hidden，仅通过 Inbound 引用）
+    groups.push({
+      name: '📥 Auto',
+      type: 'url-test',
+      use: [...inboundUse],
+      url: 'https://www.gstatic.com/generate_204',
+      interval: 300,
+      hidden: true,
+    });
+
+    // 📤 Auto：落地自动测速组（hidden，仅通过 Outbound 引用）
+    groups.push({
+      name: '📤 Auto',
+      type: 'url-test',
+      use: [...outboundUse],
+      'dialer-proxy': '🚇 Inbound',
+      url: 'https://www.gstatic.com/generate_204',
+      interval: 300,
+      hidden: true,
+    });
+
+    this.config['proxy-groups'] = groups;
+
+    // ── Rules ──
+    const rules: string[] = [];
+
+    // DOMAIN 直连规则（订阅地址域名）
+    providerHosts.forEach((host) => {
+      rules.push(`DOMAIN,${host},DIRECT`);
+    });
+
+    // RULE-SET 规则
+    defaultRuleDefinitions.forEach((rule) => {
+      rules.push(`RULE-SET, ${rule.name}, ${rule.group}`);
+    });
+
+    // GEOIP + MATCH
+    rules.push('GEOIP, CN, 🇨🇳 China');
+    rules.push('MATCH, 🐠 Final');
+
+    this.config.rules = rules;
   }
 
   get content() {

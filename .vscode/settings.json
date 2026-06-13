@@ -1,0 +1,25 @@
+{
+  "oaicopilot.baseUrl": "https://api.xiaomimimo.com/v1",
+  "oaicopilot.delay": 0,
+  "oaicopilot.readFileLines": 0,
+  "oaicopilot.retry": {
+    "enabled": true,
+    "max_attempts": 3,
+    "interval_ms": 1000,
+    "status_codes": []
+  },
+  "oaicopilot.commitLanguage": "English",
+  "oaicopilot.models": [
+    {
+      "id": "mimo-v2.5-pro",
+      "owned_by": "mimo",
+      "apiMode": "openai"
+    },
+    {
+      "id": "mimo-v2.5",
+      "owned_by": "mimo",
+      "vision": true,
+      "apiMode": "openai",
+    },
+  ]
+}

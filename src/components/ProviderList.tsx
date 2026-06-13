@@ -6,11 +6,16 @@ interface ProviderListProps {
   providers: ProxyProviderExtend[];
   onRemove: (index: number) => void;
   onEdit: (index: number) => void;
+  emptyText?: string;
 }
 
-export default function ProviderList({ providers, onRemove, onEdit }: ProviderListProps) {
+export default function ProviderList({ providers, onRemove, onEdit, emptyText }: ProviderListProps) {
   if (providers.length === 0) {
-    return <div className="text-center text-muted-foreground py-8">暂无机场</div>;
+    return (
+      <div className="text-center text-muted-foreground py-8">
+        {emptyText || '暂无入口节点'}
+      </div>
+    );
   }
 
   return (

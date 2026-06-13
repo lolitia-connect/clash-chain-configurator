@@ -17,71 +17,107 @@ const configurator = new ConfigConfigurator();
 
 const STORAGE_KEYS = {
   PROVIDERS: 'clash-chain-providers',
-  PROXY_NODES: 'clash-chain-proxy-nodes',
+  LANDING_PROVIDERS: 'clash-chain-landing-providers',
+  ENTRY_PROXY_NODES: 'clash-chain-entry-proxy-nodes',
+  LANDING_PROXY_NODES: 'clash-chain-landing-proxy-nodes',
 };
 
 export default function App() {
   const [content, setContent] = useState(configurator.content);
+
+  // ── 入口节点：订阅 ──
   const [providers, setProviders] = useState<ProxyProviderExtend[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  const [proxyNodes, setProxyNodes] = useState<ProxyNode[]>([]);
-  const [proxyNodeDialogOpen, setProxyNodeDialogOpen] = useState(false);
-  const [editingProxyNodeIndex, setEditingProxyNodeIndex] = useState<number | null>(null);
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  // ── 落地节点：订阅 ──
+  const [landingProviders, setLandingProviders] = useState<ProxyProviderExtend[]>([]);
+  const [landingDialogOpen, setLandingDialogOpen] = useState(false);
+  const [editingLandingIndex, setEditingLandingIndex] = useState<number | null>(null);
 
+  // ── 入口节点：手动添加 ──
+  const [entryProxyNodes, setEntryProxyNodes] = useState<ProxyNode[]>([]);
+  const [entryNodeDialogOpen, setEntryNodeDialogOpen] = useState(false);
+  const [editingEntryNodeIndex, setEditingEntryNodeIndex] = useState<number | null>(null);
+  const [entryImportDialogOpen, setEntryImportDialogOpen] = useState(false);
+
+  // ── 落地节点：手动添加 ──
+  const [landingProxyNodes, setLandingProxyNodes] = useState<ProxyNode[]>([]);
+  const [landingNodeDialogOpen, setLandingNodeDialogOpen] = useState(false);
+  const [editingLandingNodeIndex, setEditingLandingNodeIndex] = useState<number | null>(null);
+  const [landingImportDialogOpen, setLandingImportDialogOpen] = useState(false);
+
+  // ── 加载 ──
   useEffect(() => {
     try {
       const savedProviders = localStorage.getItem(STORAGE_KEYS.PROVIDERS);
-      const savedProxyNodes = localStorage.getItem(STORAGE_KEYS.PROXY_NODES);
-      if (savedProviders) {
-        setProviders(JSON.parse(savedProviders));
-      }
-      if (savedProxyNodes) {
-        setProxyNodes(JSON.parse(savedProxyNodes));
+      const savedLandingProviders = localStorage.getItem(STORAGE_KEYS.LANDING_PROVIDERS);
+      const savedEntryNodes = localStorage.getItem(STORAGE_KEYS.ENTRY_PROXY_NODES);
+      const savedLandingNodes = localStorage.getItem(STORAGE_KEYS.LANDING_PROXY_NODES);
+      // 兼容旧数据：旧的 PROXY_NODES 全部作为落地节点
+      const legacyNodes = localStorage.getItem('clash-chain-proxy-nodes');
+      if (savedProviders) setProviders(JSON.parse(savedProviders));
+      if (savedLandingProviders) setLandingProviders(JSON.parse(savedLandingProviders));
+      if (savedEntryNodes) setEntryProxyNodes(JSON.parse(savedEntryNodes));
+      if (savedLandingNodes) {
+        setLandingProxyNodes(JSON.parse(savedLandingNodes));
+      } else if (legacyNodes) {
+        setLandingProxyNodes(JSON.parse(legacyNodes));
       }
     } catch (e) {
       console.error('Failed to load from localStorage:', e);
     }
   }, []);
 
+  // ── 订阅变更 → 更新配置 ──
   useEffect(() => {
-    configurator.setProviders(providers);
+    const allProviders = [
+      ...providers.map((p) => ({ ...p, landing: false })),
+      ...landingProviders.map((p) => ({ ...p, landing: true })),
+    ];
+    configurator.setProviders(allProviders);
+    configurator.setFinalProxyNodes(entryProxyNodes, landingProxyNodes);
     setContent(configurator.content);
     try {
       localStorage.setItem(STORAGE_KEYS.PROVIDERS, JSON.stringify(providers));
     } catch (e) {
       console.error('Failed to save providers:', e);
     }
-  }, [providers]);
+    try {
+      localStorage.setItem(STORAGE_KEYS.LANDING_PROVIDERS, JSON.stringify(landingProviders));
+    } catch (e) {
+      console.error('Failed to save landing providers:', e);
+    }
+  }, [providers, landingProviders]);
 
+  // ── 手动节点变更 → 更新配置 ──
   useEffect(() => {
-    configurator.setFinalProxyNodes(proxyNodes);
+    configurator.setFinalProxyNodes(entryProxyNodes, landingProxyNodes);
     setContent(configurator.content);
     try {
-      localStorage.setItem(STORAGE_KEYS.PROXY_NODES, JSON.stringify(proxyNodes));
+      localStorage.setItem(STORAGE_KEYS.ENTRY_PROXY_NODES, JSON.stringify(entryProxyNodes));
     } catch (e) {
-      console.error('Failed to save proxy nodes:', e);
+      console.error('Failed to save entry proxy nodes:', e);
     }
-  }, [proxyNodes]);
+    try {
+      localStorage.setItem(STORAGE_KEYS.LANDING_PROXY_NODES, JSON.stringify(landingProxyNodes));
+    } catch (e) {
+      console.error('Failed to save landing proxy nodes:', e);
+    }
+  }, [entryProxyNodes, landingProxyNodes]);
 
-  configurator.setProviders(providers);
-
+  // ── 入口订阅 ──
   const handleRemoveProvider = (index: number) => {
     setProviders(providers.filter((_, i) => i !== index));
   };
-
   const handleEditProvider = (index: number) => {
     setEditingIndex(index);
     setDialogOpen(true);
   };
-
   const handleAddProvider = () => {
     setEditingIndex(null);
     setDialogOpen(true);
   };
-
   const handleSaveProvider = (provider: ProxyProviderExtend) => {
     if (editingIndex !== null) {
       const newProviders = [...providers];
@@ -92,34 +128,79 @@ export default function App() {
     }
   };
 
-  const handleRemoveProxyNode = (index: number) => {
-    setProxyNodes(proxyNodes.filter((_, i) => i !== index));
+  // ── 落地订阅 ──
+  const handleRemoveLandingProvider = (index: number) => {
+    setLandingProviders(landingProviders.filter((_, i) => i !== index));
   };
-
-  const handleEditProxyNode = (index: number) => {
-    setEditingProxyNodeIndex(index);
-    setProxyNodeDialogOpen(true);
+  const handleEditLandingProvider = (index: number) => {
+    setEditingLandingIndex(index);
+    setLandingDialogOpen(true);
   };
-
-  const handleAddProxyNode = () => {
-    setEditingProxyNodeIndex(null);
-    setProxyNodeDialogOpen(true);
+  const handleAddLandingProvider = () => {
+    setEditingLandingIndex(null);
+    setLandingDialogOpen(true);
   };
-
-  const handleSaveProxyNode = (proxyNode: ProxyNode) => {
-    if (editingProxyNodeIndex !== null) {
-      const newProxyNodes = [...proxyNodes];
-      newProxyNodes[editingProxyNodeIndex] = proxyNode;
-      setProxyNodes(newProxyNodes);
+  const handleSaveLandingProvider = (provider: ProxyProviderExtend) => {
+    if (editingLandingIndex !== null) {
+      const newProviders = [...landingProviders];
+      newProviders[editingLandingIndex] = provider;
+      setLandingProviders(newProviders);
     } else {
-      setProxyNodes([...proxyNodes, proxyNode]);
+      setLandingProviders([...landingProviders, provider]);
     }
   };
 
-  const handleImportProxyNodes = (nodes: ProxyNode[]) => {
-    setProxyNodes([...proxyNodes, ...nodes]);
+  // ── 入口手动节点 ──
+  const handleRemoveEntryNode = (index: number) => {
+    setEntryProxyNodes(entryProxyNodes.filter((_, i) => i !== index));
+  };
+  const handleEditEntryNode = (index: number) => {
+    setEditingEntryNodeIndex(index);
+    setEntryNodeDialogOpen(true);
+  };
+  const handleAddEntryNode = () => {
+    setEditingEntryNodeIndex(null);
+    setEntryNodeDialogOpen(true);
+  };
+  const handleSaveEntryNode = (node: ProxyNode) => {
+    if (editingEntryNodeIndex !== null) {
+      const newNodes = [...entryProxyNodes];
+      newNodes[editingEntryNodeIndex] = node;
+      setEntryProxyNodes(newNodes);
+    } else {
+      setEntryProxyNodes([...entryProxyNodes, node]);
+    }
+  };
+  const handleImportEntryNodes = (nodes: ProxyNode[]) => {
+    setEntryProxyNodes([...entryProxyNodes, ...nodes]);
   };
 
+  // ── 落地手动节点 ──
+  const handleRemoveLandingNode = (index: number) => {
+    setLandingProxyNodes(landingProxyNodes.filter((_, i) => i !== index));
+  };
+  const handleEditLandingNode = (index: number) => {
+    setEditingLandingNodeIndex(index);
+    setLandingNodeDialogOpen(true);
+  };
+  const handleAddLandingNode = () => {
+    setEditingLandingNodeIndex(null);
+    setLandingNodeDialogOpen(true);
+  };
+  const handleSaveLandingNode = (node: ProxyNode) => {
+    if (editingLandingNodeIndex !== null) {
+      const newNodes = [...landingProxyNodes];
+      newNodes[editingLandingNodeIndex] = node;
+      setLandingProxyNodes(newNodes);
+    } else {
+      setLandingProxyNodes([...landingProxyNodes, node]);
+    }
+  };
+  const handleImportLandingNodes = (nodes: ProxyNode[]) => {
+    setLandingProxyNodes([...landingProxyNodes, ...nodes]);
+  };
+
+  // ── 复制 / 下载 ──
   const handleCopyConfig = async () => {
     try {
       await navigator.clipboard.writeText(content);
@@ -128,7 +209,6 @@ export default function App() {
       toast.error('复制失败');
     }
   };
-
   const handleDownloadConfig = () => {
     const blob = new Blob([content], { type: 'text/yaml' });
     const url = URL.createObjectURL(blob);
@@ -139,6 +219,9 @@ export default function App() {
     URL.revokeObjectURL(url);
     toast.success('配置已下载');
   };
+
+  const allProviderNames = [...providers, ...landingProviders].map((p) => p.name);
+  const allNodeNames = [...entryProxyNodes, ...landingProxyNodes].map((p) => p.name);
 
   return (
     <>
@@ -198,70 +281,151 @@ export default function App() {
           </p>
         </div>
 
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg sm:text-xl font-semibold">机场列表</h2>
-            <Button onClick={handleAddProvider} size="sm" className="sm:size-default">
-              <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">添加</span>
-            </Button>
-          </div>
-          <ProviderList
-            providers={providers}
-            onRemove={handleRemoveProvider}
-            onEdit={handleEditProvider}
-          />
-        </div>
+        {/* ═══════════════ 入口节点 ═══════════════ */}
+        <div className="rounded-lg border p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <h2 className="text-lg sm:text-xl font-semibold">入口节点</h2>
 
-        <ProviderDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          provider={editingIndex !== null ? providers[editingIndex] : null}
-          onSave={handleSaveProvider}
-          existingNames={providers.map((p) => p.name)}
-        />
-
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg sm:text-xl font-semibold">落地节点</h2>
-            <div className="flex gap-1 sm:gap-2">
-              <Button
-                onClick={() => setImportDialogOpen(true)}
-                variant="outline"
-                size="sm"
-                className="sm:size-default"
-              >
-                <Import className="h-4 w-4 sm:mr-2" />{' '}
-                <span className="hidden sm:inline">导入</span>
-              </Button>
-              <Button onClick={handleAddProxyNode} size="sm" className="sm:size-default">
+          {/* ── 订阅 ── */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm sm:text-base font-medium text-muted-foreground">订阅</h3>
+              <Button onClick={handleAddProvider} size="sm" className="sm:size-default">
                 <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">添加</span>
               </Button>
             </div>
+            <ProviderList
+              providers={providers}
+              onRemove={handleRemoveProvider}
+              onEdit={handleEditProvider}
+              emptyText="暂无入口节点订阅"
+            />
           </div>
-          <FinalProxyNodeList
-            proxyNodes={proxyNodes}
-            onRemove={handleRemoveProxyNode}
-            onEdit={handleEditProxyNode}
+
+          <ProviderDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            provider={editingIndex !== null ? providers[editingIndex] : null}
+            onSave={handleSaveProvider}
+            existingNames={allProviderNames}
+            title="入口节点订阅"
+          />
+
+          {/* ── 手动添加 ── */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm sm:text-base font-medium text-muted-foreground">手动添加</h3>
+              <div className="flex gap-1 sm:gap-2">
+                <Button
+                  onClick={() => setEntryImportDialogOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="sm:size-default"
+                >
+                  <Import className="h-4 w-4 sm:mr-2" />{' '}
+                  <span className="hidden sm:inline">导入</span>
+                </Button>
+                <Button onClick={handleAddEntryNode} size="sm" className="sm:size-default">
+                  <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">添加</span>
+                </Button>
+              </div>
+            </div>
+            <FinalProxyNodeList
+              proxyNodes={entryProxyNodes}
+              onRemove={handleRemoveEntryNode}
+              onEdit={handleEditEntryNode}
+            />
+          </div>
+
+          <FinalProxyNodeDialog
+            open={entryNodeDialogOpen}
+            onOpenChange={setEntryNodeDialogOpen}
+            proxyNode={editingEntryNodeIndex !== null ? entryProxyNodes[editingEntryNodeIndex] : null}
+            onSave={handleSaveEntryNode}
+            existingNames={allNodeNames}
+          />
+
+          <ImportProxyNodesDialog
+            open={entryImportDialogOpen}
+            onOpenChange={setEntryImportDialogOpen}
+            onImport={handleImportEntryNodes}
+            existingNames={allNodeNames}
           />
         </div>
 
-        <FinalProxyNodeDialog
-          open={proxyNodeDialogOpen}
-          onOpenChange={setProxyNodeDialogOpen}
-          proxyNode={editingProxyNodeIndex !== null ? proxyNodes[editingProxyNodeIndex] : null}
-          onSave={handleSaveProxyNode}
-          existingNames={proxyNodes.map((p) => p.name)}
-        />
+        {/* ═══════════════ 落地节点 ═══════════════ */}
+        <div className="rounded-lg border p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <h2 className="text-lg sm:text-xl font-semibold">落地节点</h2>
 
-        <ImportProxyNodesDialog
-          open={importDialogOpen}
-          onOpenChange={setImportDialogOpen}
-          onImport={handleImportProxyNodes}
-          existingNames={proxyNodes.map((p) => p.name)}
-        />
+          {/* ── 订阅 ── */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm sm:text-base font-medium text-muted-foreground">订阅</h3>
+              <Button onClick={handleAddLandingProvider} size="sm" className="sm:size-default">
+                <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">添加</span>
+              </Button>
+            </div>
+            <ProviderList
+              providers={landingProviders}
+              onRemove={handleRemoveLandingProvider}
+              onEdit={handleEditLandingProvider}
+              emptyText="暂无落地节点订阅"
+            />
+          </div>
+
+          <ProviderDialog
+            open={landingDialogOpen}
+            onOpenChange={setLandingDialogOpen}
+            provider={editingLandingIndex !== null ? landingProviders[editingLandingIndex] : null}
+            onSave={handleSaveLandingProvider}
+            existingNames={allProviderNames}
+            title="落地节点订阅"
+          />
+
+          {/* ── 手动添加 ── */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm sm:text-base font-medium text-muted-foreground">手动添加</h3>
+              <div className="flex gap-1 sm:gap-2">
+                <Button
+                  onClick={() => setLandingImportDialogOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="sm:size-default"
+                >
+                  <Import className="h-4 w-4 sm:mr-2" />{' '}
+                  <span className="hidden sm:inline">导入</span>
+                </Button>
+                <Button onClick={handleAddLandingNode} size="sm" className="sm:size-default">
+                  <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">添加</span>
+                </Button>
+              </div>
+            </div>
+            <FinalProxyNodeList
+              proxyNodes={landingProxyNodes}
+              onRemove={handleRemoveLandingNode}
+              onEdit={handleEditLandingNode}
+            />
+          </div>
+
+          <FinalProxyNodeDialog
+            open={landingNodeDialogOpen}
+            onOpenChange={setLandingNodeDialogOpen}
+            proxyNode={editingLandingNodeIndex !== null ? landingProxyNodes[editingLandingNodeIndex] : null}
+            onSave={handleSaveLandingNode}
+            existingNames={allNodeNames}
+          />
+
+          <ImportProxyNodesDialog
+            open={landingImportDialogOpen}
+            onOpenChange={setLandingImportDialogOpen}
+            onImport={handleImportLandingNodes}
+            existingNames={allNodeNames}
+          />
+        </div>
 
         <Toaster />
 
+        {/* ═══════════════ 生成的配置 ═══════════════ */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl font-semibold">生成的配置</h2>

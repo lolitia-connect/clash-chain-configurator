@@ -1,13 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  turbopack: {
-    rules: {
-      '*.yaml': {
-        loaders: ['yaml-loader'],
-        as: '*.js',
-      },
-    },
-  },
-};
+const nextConfig = {};
 
 module.exports = nextConfig;

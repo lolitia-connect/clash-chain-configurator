@@ -209,6 +209,7 @@ const providerSchema = z
     url: z.string().optional(),
     payloadContent: z.string().optional(),
     interval: z.coerce.number().min(60, '间隔至少60分钟').default(86400),
+    prefix: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -260,6 +261,7 @@ interface ProviderDialogProps {
   provider?: ProxyProviderExtend | null;
   onSave: (provider: ProxyProviderExtend) => void;
   existingNames: string[];
+  title?: string;
 }
 
 export default function ProviderDialog({
@@ -268,6 +270,7 @@ export default function ProviderDialog({
   provider,
   onSave,
   existingNames,
+  title,
 }: ProviderDialogProps) {
   const isEditing = !!provider;
 
@@ -287,6 +290,7 @@ export default function ProviderDialog({
       url: '',
       payloadContent: '',
       interval: 86400,
+      prefix: '',
     },
   });
 
@@ -346,6 +350,7 @@ export default function ProviderDialog({
         url: provider.url || '',
         payloadContent: provider.payloadContent || '',
         interval: provider.interval || 86400,
+        prefix: provider.prefix || '',
       });
     } else if (open) {
       reset({
@@ -354,6 +359,7 @@ export default function ProviderDialog({
         url: '',
         payloadContent: '',
         interval: 86400,
+        prefix: '',
       });
     }
   }, [open, provider, reset]);
@@ -364,13 +370,17 @@ export default function ProviderDialog({
       : existingNames;
 
     if (namesToCheck.includes(data.name)) {
-      toast.error('机场名称已存在', {
-        description: `名称为"${data.name}"的机场已存在`,
+      toast.error('名称已存在', {
+        description: `名称为"${data.name}"的订阅已存在`,
       });
       return;
     }
 
-    onSave(data as ProxyProviderExtend);
+    const saveData: ProxyProviderExtend = {
+      ...data,
+      prefix: data.prefix || undefined,
+    } as ProxyProviderExtend;
+    onSave(saveData);
     onOpenChange(false);
   };
 
@@ -378,7 +388,7 @@ export default function ProviderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] md:w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? '编辑机场' : '添加机场'}</DialogTitle>
+          <DialogTitle>{title ?? (isEditing ? '编辑入口节点' : '添加入口节点')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid gap-1.5">
@@ -388,7 +398,7 @@ export default function ProviderDialog({
             <Input
               id="name"
               {...register('name')}
-              placeholder="机场名称"
+              placeholder="名称"
               className={errors.name ? 'border-destructive' : ''}
             />
             {errors.name && <span className="text-xs text-destructive">{errors.name.message}</span>}
@@ -451,6 +461,17 @@ export default function ProviderDialog({
               )}
             </div>
           )}
+          <div className="grid gap-1.5">
+            <Label htmlFor="prefix">节点名称前缀</Label>
+            <Input
+              id="prefix"
+              {...register('prefix')}
+              placeholder={watch('name') ? `${watch('name')} ` : '例如: 花云 '}
+            />
+            <span className="text-xs text-muted-foreground">
+              留空则不添加前缀
+            </span>
+          </div>
           {watchType === 'http' && (
             <div className="grid gap-1.5">
               <Label htmlFor="interval">
