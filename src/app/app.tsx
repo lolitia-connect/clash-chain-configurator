@@ -9,8 +9,9 @@ import FinalProxyNodeDialog from '@/components/FinalProxyNodeDialog';
 import ImportProxyNodesDialog from '@/components/ImportProxyNodesDialog';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/sonner';
-import { Plus, Import, Copy, Download, Github } from 'lucide-react';
+import { Plus, Import, Copy, Download, Github, Sun, Moon, Monitor } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { useTheme } from 'next-themes';
 
 const configurator = new ConfigConfigurator();
 
@@ -22,6 +23,9 @@ const STORAGE_KEYS = {
 };
 
 export default function App() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const [content, setContent] = useState(configurator.content);
 
   // ── 入口节点：订阅 ──
@@ -229,7 +233,18 @@ export default function App() {
           <div className="flex items-center gap-2 sm:gap-3">
             <h1 className="text-lg sm:text-2xl font-bold">Clash 链式配置生成器</h1>
           </div>
-          <a
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setTheme(theme === 'system' ? 'light' : theme === 'light' ? 'dark' : 'system')}
+              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              aria-label="切换主题"
+            >
+              {mounted && theme === 'system' && <Monitor className="h-5 w-5" />}
+              {mounted && theme === 'light' && <Sun className="h-5 w-5" />}
+              {mounted && theme === 'dark' && <Moon className="h-5 w-5" />}
+              {!mounted && <Monitor className="h-5 w-5" />}
+            </button>
+            <a
             href="https://github.com/lolitia-connect/clash-chain-configurator"
             target="_blank"
             rel="noopener noreferrer"
@@ -238,6 +253,7 @@ export default function App() {
             <Github className="h-5 w-5" />
             <span className="hidden sm:inline">源代码</span>
           </a>
+          </div>
         </div>
       </header>
 
