@@ -8,6 +8,6 @@ export const GithubRule: RuleDefinition = {
     url: 'https://cdn.jsdmirror.com/gh/perfect-panel/rules/rule/Clash/GitHub/GitHub.yaml',
     interval: 86400,
   },
-  group: '🪟 Microsoft',
-  proxyPreference: 'direct-first',
+  group: '🚀 Outbound',
+  proxyPreference: 'outbound-first',
 };
