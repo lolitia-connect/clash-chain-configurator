@@ -1,62 +1,75 @@
-# 使用说明
+# Clash 链式配置生成器
 
-本项目是一个开源的纯客户端（浏览器）应用，用于根据“机场（代理订阅）”与“落地节点”生成支持`Clash链式代理功能`的 YAML 配置，所有数据存储在浏览器本地，不会上传到任何服务器。
-规则使用是[Loyalsoldier/clash-rules](https://github.com/Loyalsoldier/clash-rules)
+一个纯客户端的 Clash 代理配置生成器，支持多机场订阅合并、链式代理（入口 → 落地）配置生成。所有数据存储在浏览器本地，不会上传到任何服务器。
 
-网址：https://clash-chain-configurator.vercel.app/
+## 功能特性
 
-## 操作步骤
+- **链式代理配置**：生成入口节点 → 落地节点的链式代理配置，支持 `dialer-proxy` 自动设置
+- **多订阅合并**：支持同时添加多个机场订阅，统一管理入口和落地节点
+- **多协议支持**：导入节点支持 `vmess://`、`vless://`、`trojan://`、`ss://`、`hysteria2://` 格式
+- **Base64 自动解码**：粘贴 Base64 编码的订阅内容会自动解码
+- **规则模块化**：内置 20+ 规则集（Apple、Google、Microsoft、Telegram、AI、游戏、加密货币等）
+- **自动分组**：根据规则自动创建代理组，包含 url-test 延迟测试组
 
-- 配置机场：有两种类型：`http`（订阅 URL + 更新间隔）和 `inline`（直接粘贴节点 YAML，支持base64加密文本，会自动解密）。如果您的机场订阅链接不支持定时刷新，您可以直接在浏览器访问订阅网址，把返回的节点信息通过`inline`的方式直接粘贴到节点内容中。
-- 配置落地节点：可手动添加或导入（支持多种节点链接格式或 QR）,如果有节点链接，建议您直接使用导入功能，防止编辑时属性填写不完整。
-- 配置生成：配置完成后会自动生成yaml配置文件，您可以复制或者下载到本地。
-  ![example](./images/example.png)
-- 使用配置：下载后打开`Clash Verge`，选择`订阅`选项卡, 依次点击：`新建 -> 类型(Local) -> 选择文件 -> 确定`，即可导入配置文件。请确保打开了`系统代理`或者`虚拟网卡模式`。
-  ![clash verge](./images/clash-verge.png)
+## 使用说明
 
-## 落地节点说明
+### 1. 添加入口节点（订阅）
 
-由于我本人用的是`vmess`落地节点，因此只测试了这种类型。如果您使用的是其他类型的节点，因为属性不完整导致不可以用的，您可以联系我完善。或者您也可以手动编辑yaml文件（注意不要删除`dialer-proxy`属性）。
+入口节点是链式代理的第一跳。支持两种类型：
+
+- **HTTP 订阅**：填写订阅 URL 和更新间隔，Clash 客户端会定时拉取更新
+- **Inline 内联**：直接粘贴节点 YAML 内容（支持 Base64 编码文本，会自动解码）。如果订阅链接不支持定时刷新，可以浏览器访问订阅 URL，将返回的内容粘贴到这里
+
+### 2. 添加落地节点（订阅）
+
+落地节点是链式代理的最后一跳，即您实际访问目标网站使用的出口。同样支持 HTTP 和 Inline 两种类型。
+
+### 3. 手动添加节点
+
+如果有个别节点需要手动添加，可以在「手动添加」区域直接输入节点链接或 YAML 配置。支持导入功能，可从文本粘贴导入。
+
+### 4. 生成配置
+
+添加完入口和落地节点后，配置会自动生成。点击「复制」或「下载」按钮获取 YAML 配置文件。
+
+### 5. 导入到 Clash 客户端
+
+打开 Clash Verge（或其他 Mihomo 客户端），选择「订阅」选项卡，依次点击：新建 → 类型（Local）→ 选择文件 → 确定，即可导入配置文件。请确保开启了「系统代理」或「虚拟网卡模式」。
+
+## 技术栈
+
+- **框架**：Next.js 16（App Router）+ React 19
+- **样式**：Tailwind CSS + Radix UI
+- **YAML 处理**：js-yaml
+- **表单验证**：zod + react-hook-form
+- **主题**：next-themes
+
+## 本地开发
+
+```bash
+# 安装依赖
+bun install
+
+# 启动开发服务器
+bun run dev
+
+# 构建生产版本
+bun run build
+
+# 启动生产服务器
+bun run start
+
+# 代码格式化
+bun run format
+
+# 格式化检查
+bun run format:check
+```
 
 ## 隐私说明
 
-本应用为纯客户端应用，不会把用户的机场订阅或节点发到外部服务器，所有配置仅保存在本地浏览器存储中（`localStorage`）。
+本应用为纯客户端应用，所有数据（机场订阅、节点信息、配置文件）均存储在浏览器本地 `localStorage` 中，不会向任何服务器传输用户数据。
 
----
+## 开源许可
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+MIT License
