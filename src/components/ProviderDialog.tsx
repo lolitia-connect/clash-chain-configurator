@@ -294,6 +294,7 @@ export default function ProviderDialog({
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- watch() result used as simple value, not passed to memoized children
   const watchType = watch('type');
 
   const isBase64 = (str: string): boolean => {

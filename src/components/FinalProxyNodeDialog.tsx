@@ -309,6 +309,7 @@ export default function FinalProxyNodeDialog({
 
   const handleTypeChange = (type: ProxyType) => {
     setProxyType(type);
+    // eslint-disable-next-line react-hooks/incompatible-library -- watch() is used transiently here, not rendered
     reset({ type, name: watch('name'), server: watch('server'), port: watch('port') });
   };
 

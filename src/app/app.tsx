@@ -82,7 +82,6 @@ export default function App() {
       ...landingProviders.map((p) => ({ ...p, landing: true })),
     ];
     configurator.setProviders(allProviders);
-    configurator.setFinalProxyNodes(entryProxyNodes, landingProxyNodes);
     setContent(configurator.content);
     try {
       localStorage.setItem(STORAGE_KEYS.PROVIDERS, JSON.stringify(providers));
