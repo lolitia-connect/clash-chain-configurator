@@ -9,6 +9,6 @@ export const BilibiliRule: RuleDefinition = {
     interval: 86400,
   },
   group: 'Bilibili',
-  parentGroup: '📺 Media',
+  parentGroup: '📺 CNMedia',
   proxyPreference: 'direct-first',
 };

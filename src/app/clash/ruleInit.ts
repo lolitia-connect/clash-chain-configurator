@@ -16,6 +16,20 @@ export const defaultRuleProviders: Record<string, RuleProvider> = defaultRuleDef
   {} as Record<string, RuleProvider>,
 );
 
-export const defaultRuleSets: string[] = defaultRuleDefinitions.map(
-  (rule) => `RULE-SET, ${rule.name}, ${rule.group}`,
-);
+export const defaultRuleSets: string[] = (() => {
+  const visited = new Set<string>();
+  const sorted: RuleDefinition[] = [];
+  function visit(rule: RuleDefinition) {
+    if (visited.has(rule.name)) return;
+    visited.add(rule.name);
+    defaultRuleDefinitions.forEach((r) => {
+      if (r.parentGroup === rule.group) visit(r);
+    });
+    sorted.push(rule);
+  }
+  defaultRuleDefinitions.forEach((rule) => {
+    if (!rule.parentGroup) visit(rule);
+  });
+  defaultRuleDefinitions.forEach((rule) => visit(rule));
+  return sorted.map((rule) => `RULE-SET, ${rule.name}, ${rule.group}`);
+})();

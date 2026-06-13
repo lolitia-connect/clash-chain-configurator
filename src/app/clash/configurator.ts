@@ -181,7 +181,26 @@ export default class ConfigConfigurator {
         });
       }
     });
-    groupMap.forEach(({ preference, parentGroup }, groupName) => {
+    // 按父-子关系排序：父组在前，其所有子孙组紧跟其后
+    const sortedGroupNames: string[] = [];
+    const visited = new Set<string>();
+    function visit(name: string) {
+      if (visited.has(name)) return;
+      visited.add(name);
+      sortedGroupNames.push(name);
+      // 找出所有 parentGroup === name 的子组，按原序追加
+      groupMap.forEach((v, childName) => {
+        if (v.parentGroup === name) visit(childName);
+      });
+    }
+    // 先排父组（无 parentGroup 的），再排孤立的子组
+    groupMap.forEach((v, name) => {
+      if (!v.parentGroup) visit(name);
+    });
+    groupMap.forEach((_, name) => visit(name));
+
+    sortedGroupNames.forEach((groupName) => {
+      const { preference, parentGroup } = groupMap.get(groupName)!;
       const baseProxies =
         preference === 'direct-first'
           ? ['🎯 Direct', '🚀 Outbound']
@@ -241,8 +260,26 @@ export default class ConfigConfigurator {
       rules.push(`DOMAIN,${host},DIRECT`);
     });
 
-    // RULE-SET 规则
+    // RULE-SET 规则（子辈在前、父辈在后，避免父规则先命中覆盖子规则）
+    const ruleVisited = new Set<string>();
+    const sortedRules: RuleDefinition[] = [];
+    function visitRule(rule: RuleDefinition) {
+      if (ruleVisited.has(rule.name)) return;
+      ruleVisited.add(rule.name);
+      // 先递归处理引用当前 group 作为 parentGroup 的子规则
+      defaultRuleDefinitions.forEach((r) => {
+        if (r.parentGroup === rule.group) visitRule(r);
+      });
+      sortedRules.push(rule);
+    }
+    // 先处理无 parentGroup 的规则（父组/独立组），递归展开其子规则
     defaultRuleDefinitions.forEach((rule) => {
+      if (!rule.parentGroup) visitRule(rule);
+    });
+    // 兜底：处理可能遗漏的孤立子规则
+    defaultRuleDefinitions.forEach((rule) => visitRule(rule));
+
+    sortedRules.forEach((rule) => {
       rules.push(`RULE-SET, ${rule.name}, ${rule.group}`);
     });
 
