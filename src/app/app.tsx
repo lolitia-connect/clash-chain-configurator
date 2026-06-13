@@ -9,7 +9,7 @@ import FinalProxyNodeDialog from '@/components/FinalProxyNodeDialog';
 import ImportProxyNodesDialog from '@/components/ImportProxyNodesDialog';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/sonner';
-import { Plus, Import, Copy, Download, Github, Sun, Moon, Monitor } from 'lucide-react';
+import { Plus, Import, Copy, Download, Upload, FileJson, Waypoints, Network, Github, Sun, Moon, Monitor } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { useTheme } from 'next-themes';
 
@@ -205,6 +205,47 @@ export default function App() {
     setLandingProxyNodes([...landingProxyNodes, ...nodes]);
   };
 
+  // ── 导出 / 导入全部配置 (JSON) ──
+  const handleExportAll = () => {
+    const data = {
+      providers,
+      landingProviders,
+      entryProxyNodes,
+      landingProxyNodes,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `clash-chain-configurator_exported_${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('配置已导出');
+  };
+
+  const handleImportAll = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (data.providers) setProviders(data.providers);
+        if (data.landingProviders) setLandingProviders(data.landingProviders);
+        if (data.entryProxyNodes) setEntryProxyNodes(data.entryProxyNodes);
+        if (data.landingProxyNodes) setLandingProxyNodes(data.landingProxyNodes);
+        toast.success('配置已导入');
+      } catch {
+        toast.error('导入失败：文件格式不正确');
+      }
+    };
+    input.click();
+  };
+
   // ── 复制 / 下载 ──
   const handleCopyConfig = async () => {
     try {
@@ -250,14 +291,14 @@ export default function App() {
               {!mounted && <Monitor className="h-5 w-5" />}
             </button>
             <a
-            href="https://github.com/lolitia-connect/clash-chain-configurator"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Github className="h-5 w-5" />
-            <span className="hidden sm:inline">源代码</span>
-          </a>
+              href="https://github.com/lolitia-connect/clash-chain-configurator"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Github className="h-5 w-5" />
+              <span className="hidden sm:inline">源代码</span>
+            </a>
           </div>
         </div>
       </header>
@@ -278,9 +319,33 @@ export default function App() {
           </p>
         </div>
 
+        {/* ═══════════════ 配置管理 ═══════════════ */}
+        <div className="rounded-lg border p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <FileJson className="h-5 w-5 text-muted-foreground" />
+              <h2 className="text-lg sm:text-xl font-semibold">配置管理</h2>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleExportAll} variant="outline" size="sm" className="sm:size-default">
+                <Download className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">导出配置</span><span className="sm:hidden">导出</span>
+              </Button>
+              <Button onClick={handleImportAll} variant="outline" size="sm" className="sm:size-default">
+                <Upload className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">导入配置</span><span className="sm:hidden">导入</span>
+              </Button>
+            </div>
+          </div>
+          <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
+            导出或导入全部节点配置（订阅 + 手动节点），格式为 JSON，方便备份与迁移。
+          </p>
+        </div>
+
         {/* ═══════════════ 入口节点 ═══════════════ */}
         <div className="relative rounded-lg border p-4 sm:p-6 space-y-4 sm:space-y-6">
-          <h2 className="text-lg sm:text-xl font-semibold">入口节点</h2>
+          <div className="flex items-center gap-2">
+            <Waypoints className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg sm:text-xl font-semibold">入口节点</h2>
+          </div>
           {!dataLoaded && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/60 backdrop-blur-sm">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -362,7 +427,10 @@ export default function App() {
 
         {/* ═══════════════ 落地节点 ═══════════════ */}
         <div className="relative rounded-lg border p-4 sm:p-6 space-y-4 sm:space-y-6">
-          <h2 className="text-lg sm:text-xl font-semibold">落地节点</h2>
+          <div className="flex items-center gap-2">
+            <Network className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg sm:text-xl font-semibold">落地节点</h2>
+          </div>
           {!dataLoaded && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/60 backdrop-blur-sm">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
