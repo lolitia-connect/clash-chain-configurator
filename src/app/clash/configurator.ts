@@ -111,6 +111,12 @@ export default class ConfigConfigurator {
     // 无订阅且无手动节点时跳过
     if (!allProviderNames.length && !entryNodes.length && !landingNodes.length) return;
 
+    // 无入口订阅且无入口手动节点时跳过
+    if (!entryProviders.length && !entryNodes.length) return;
+
+    // 无落地订阅且无落地手动节点时跳过
+    if (!landingProviders.length && !landingNodes.length) return;
+
     if (entryNodes.length > 0) {
       this.config['proxy-providers']['Inbound Manual'] = {
         type: 'inline',

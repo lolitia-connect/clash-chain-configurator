@@ -225,6 +225,9 @@ export default function App() {
 
   const allProviderNames = [...providers, ...landingProviders].map((p) => p.name);
   const allNodeNames = [...entryProxyNodes, ...landingProxyNodes].map((p) => p.name);
+  const hasEntry = providers.length > 0 || entryProxyNodes.length > 0;
+  const hasLanding = landingProviders.length > 0 || landingProxyNodes.length > 0;
+  const canGenerate = hasEntry && hasLanding;
 
   return (
     <>
@@ -422,13 +425,17 @@ export default function App() {
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl font-semibold">生成的配置</h2>
             <div className="flex gap-1 sm:gap-2">
-              <Button variant="outline" size="sm" onClick={handleCopyConfig}>
-                <Copy className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">复制</span>
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadConfig}>
-                <Download className="h-4 w-4 sm:mr-2" />{' '}
-                <span className="hidden sm:inline">下载</span>
-              </Button>
+              {canGenerate && (
+                <>
+                  <Button variant="outline" size="sm" onClick={handleCopyConfig}>
+                    <Copy className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">复制</span>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleDownloadConfig}>
+                    <Download className="h-4 w-4 sm:mr-2" />{' '}
+                    <span className="hidden sm:inline">下载</span>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
           <div className="overflow-hidden rounded-lg">
@@ -439,7 +446,7 @@ export default function App() {
               customStyle={{ borderRadius: '0.5rem', fontSize: '0.75rem', margin: 0 }}
               className="!h-[400px] sm:!h-[600px] md:!h-[800px] text-xs sm:text-sm overflow-auto"
             >
-              {providers.length > 0 ? content : '请添加至少一个机场以生成配置。'}
+              {canGenerate ? content : '请添加入口和落地订阅或手动节点以生成配置。'}
             </SyntaxHighlighter>
           </div>
         </div>
