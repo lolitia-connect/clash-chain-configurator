@@ -145,6 +145,8 @@ interface RuleDefinition {
   proxyPreference?: 'direct-first' | 'outbound-first';
   /** 父代理组名称，设置后该组 proxies 列表的第一个选项将自动设为 parentGroup */
   parentGroup?: string;
+  /** 依赖的代理组名称列表，设置后该规则及其子规则将排在所有引用这些组的规则之后 */
+  after?: string[];
 }
 
 interface ProxyProviderExtend extends ProxyProvider {

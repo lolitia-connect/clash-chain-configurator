@@ -9,7 +9,6 @@ import { NetflixRule } from './PerfectPanel/Netflix';
 import { GlobalMediaRule } from './PerfectPanel/GlobalMedia';
 import { TelegramRule } from './PerfectPanel/Telegram';
 import { OpenAIRule } from './PerfectPanel/OpenAI';
-import { GeminiRule } from './PerfectPanel/Gemini';
 import { CopilotRule } from './PerfectPanel/Copilot';
 import { ClaudeRule } from './PerfectPanel/Claude';
 import { CryptoRule } from './PerfectPanel/Crypto';
@@ -31,12 +30,13 @@ export const ruleDefinitions: RuleDefinition[] = [
   GlobalMediaRule,
   TelegramRule,
   OpenAIRule,
-  GeminiRule,
   CopilotRule,
   ClaudeRule,
   CryptoRule,
   CryptocurrencyRule,
   GameRule,
-  ChinaMaxRule,
+
   LanRule,
+  
+  ChinaMaxRule,
 ];

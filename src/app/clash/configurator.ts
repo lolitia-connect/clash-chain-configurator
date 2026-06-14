@@ -260,17 +260,38 @@ export default class ConfigConfigurator {
       rules.push(`DOMAIN,${host},DIRECT`);
     });
 
-    // RULE-SET 规则（子辈在前、父辈在后，避免父规则先命中覆盖子规则）
-    const ruleVisited = new Set<string>();
+    // RULE-SET 规则（拓扑排序：子辈在前、父辈在后；after 依赖优先满足）
+    const rulePlaced = new Set<string>();
+    const ruleInStack = new Set<string>();
     const sortedRules: RuleDefinition[] = [];
     function visitRule(rule: RuleDefinition) {
-      if (ruleVisited.has(rule.name)) return;
-      ruleVisited.add(rule.name);
-      // 先递归处理引用当前 group 作为 parentGroup 的子规则
+      if (rulePlaced.has(rule.name) || ruleInStack.has(rule.name)) return;
+      ruleInStack.add(rule.name);
+      // 先处理 after 依赖：确保被依赖的组对应的规则及其子规则先排好
+      if (rule.after) {
+        rule.after.forEach((depGroup) => {
+          defaultRuleDefinitions.forEach((r) => {
+            if (r.group === depGroup) visitRule(r);
+          });
+        });
+      }
+      // 如果有 parentGroup，作为父组的子规则处理（父组会把当前规则一起排好）
+      if (rule.parentGroup) {
+        const parent = defaultRuleDefinitions.find((r) => r.group === rule.parentGroup);
+        if (parent) visitRule(parent);
+        // 父组的递归已将当前规则排好，直接返回
+        rulePlaced.add(rule.name);
+        return;
+      }
+      // 放置当前规则
+      if (!rulePlaced.has(rule.name)) {
+        rulePlaced.add(rule.name);
+        sortedRules.push(rule);
+      }
+      // 递归处理引用当前 group 作为 parentGroup 的子规则
       defaultRuleDefinitions.forEach((r) => {
         if (r.parentGroup === rule.group) visitRule(r);
       });
-      sortedRules.push(rule);
     }
     // 先处理无 parentGroup 的规则（父组/独立组），递归展开其子规则
     defaultRuleDefinitions.forEach((rule) => {

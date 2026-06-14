@@ -1,14 +1,13 @@
 export const GoogleRule: RuleDefinition = {
-  name: 'PerfectPanel-Google',
+  name: 'ACL4SSR-Google',
   description: 'Google 规则集，匹配 Google 服务。',
   provider: {
     type: 'http',
     behavior: 'classical',
     format: 'yaml',
-    url: 'https://cdn.jsdmirror.com/gh/perfect-panel/rules/rule/Clash/Google/Google_No_Resolve.yaml',
+    url: 'https://cdn.jsdmirror.com/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/Google.list',
     interval: 86400,
   },
   group: '🔍 Google',
-  after: ['🤖 AI'],
   proxyPreference: 'outbound-first',
 };
