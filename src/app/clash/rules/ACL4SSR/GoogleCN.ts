@@ -4,7 +4,7 @@ export const GoogleCNRule: RuleDefinition = {
   provider: {
     type: 'http',
     behavior: 'classical',
-    format: 'yaml',
+    format: 'text',
     url: 'https://cdn.jsdmirror.com/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/GoogleCN.list',
     interval: 86400,
   },

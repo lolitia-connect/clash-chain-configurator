@@ -4,7 +4,7 @@ export const GoogleFCMRule: RuleDefinition = {
   provider: {
     type: 'http',
     behavior: 'classical',
-    format: 'yaml',
+    format: 'text',
     url: 'https://cdn.jsdmirror.com/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/GoogleFCM.list',
     interval: 86400,
   },
