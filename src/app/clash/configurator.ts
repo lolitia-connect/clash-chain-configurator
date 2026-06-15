@@ -275,32 +275,21 @@ export default class ConfigConfigurator {
           });
         });
       }
-      // 如果有 parentGroup，确保父组先排好，再将当前子规则追加到 sortedRules
-      if (rule.parentGroup) {
-        const parent = defaultRuleDefinitions.find((r) => r.group === rule.parentGroup);
-        if (parent) visitRule(parent);
-        if (!rulePlaced.has(rule.name)) {
-          rulePlaced.add(rule.name);
-          sortedRules.push(rule);
-        }
-        // 子规则不需要再递归展开它的子辈，因为父组的 visitRule 已经处理过了
-        return;
-      }
-      // 放置当前规则
+      // 后序遍历：先递归处理所有子规则（子辈在前），再放置当前规则（父辈在后）
+      // Clash 规则先匹配先生效，因此更具体的子规则必须排在更宽泛的父规则前面
+      defaultRuleDefinitions.forEach((r) => {
+        if (r.parentGroup === rule.group) visitRule(r);
+      });
       if (!rulePlaced.has(rule.name)) {
         rulePlaced.add(rule.name);
         sortedRules.push(rule);
       }
-      // 递归处理引用当前 group 作为 parentGroup 的子规则
-      defaultRuleDefinitions.forEach((r) => {
-        if (r.parentGroup === rule.group) visitRule(r);
-      });
     }
-    // 先处理无 parentGroup 的规则（父组/独立组），递归展开其子规则
+    // 先处理无 parentGroup 的规则（根组），后序遍历会展开整棵子树
     defaultRuleDefinitions.forEach((rule) => {
       if (!rule.parentGroup) visitRule(rule);
     });
-    // 兜底：处理可能遗漏的孤立子规则
+    // 兜底：处理可能遗漏的孤立子规则（parentGroup 指向不存在的组）
     defaultRuleDefinitions.forEach((rule) => visitRule(rule));
 
     sortedRules.forEach((rule) => {
