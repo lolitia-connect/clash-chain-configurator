@@ -1,10 +1,12 @@
 import { ruleDefinitions as builtInRuleDefinitions } from './rules/built-in';
+import { ruleDefinitions as lolitiaConnectRuleDefinitions } from './rules/lolitia-connect';
 import { ruleDefinitions as perfectPanelRuleDefinitions } from './rules/perfect-panel';
 import { ruleDefinitions as acl4ssrRuleDefinitions } from './rules/acl4ssr';
 import { ruleDefinitions as blackmatrix7RuleDefinitions } from './rules/blackmatrix7@ios_rule_script';
 
 export const defaultRuleDefinitions: RuleDefinition[] = [
   ...builtInRuleDefinitions,
+  ...lolitiaConnectRuleDefinitions,
   ...perfectPanelRuleDefinitions,
   ...acl4ssrRuleDefinitions,
   ...blackmatrix7RuleDefinitions,
