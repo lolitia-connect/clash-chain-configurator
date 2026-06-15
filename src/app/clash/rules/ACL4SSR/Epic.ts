@@ -10,5 +10,5 @@ export const EpicRule: RuleDefinition = {
   },
   group: 'Epic',
   parentGroup: '🎮 Game',
-  proxyPreference: 'outbound-first',
+  proxyPreference: 'direct-first',
 };

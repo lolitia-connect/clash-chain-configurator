@@ -10,5 +10,5 @@ export const SteamRule: RuleDefinition = {
   },
   group: 'Steam',
   parentGroup: '🎮 Game',
-  proxyPreference: 'outbound-first',
+  proxyPreference: 'direct-first',
 };

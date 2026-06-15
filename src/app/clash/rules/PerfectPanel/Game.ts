@@ -9,5 +9,5 @@ export const GameRule: RuleDefinition = {
     interval: 86400,
   },
   group: '🎮 Game',
-  proxyPreference: 'outbound-first',
+  proxyPreference: 'direct-first',
 };
