@@ -9,5 +9,5 @@ export const ChinaOneKeyLoginRule: RuleDefinition = {
     interval: 86400,
   },
   group: '🇨🇳 China',
-  proxyPreference: 'outbound-first',
+  proxyPreference: 'direct-first',
 };

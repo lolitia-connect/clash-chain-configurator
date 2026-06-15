@@ -9,5 +9,6 @@ export const GlobalMediaRule: RuleDefinition = {
     interval: 86400,
   },
   group: '📺 GlobalMedia',
+  after: ['🤖 AI', '🪙 Crypto', '🍎 Apple', '🔍 Google', '🪟 Microsoft', '🎮 Game'],
   proxyPreference: 'outbound-first',
 };

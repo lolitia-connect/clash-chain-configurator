@@ -8,6 +8,7 @@ export const DisneyRule: RuleDefinition = {
     url: 'https://cdn.jsdmirror.com/gh/perfect-panel/rules/rule/Clash/Disney/Disney.yaml',
     interval: 86400,
   },
-  group: '📺 GlobalMedia',
+  group: 'Disney',
+  parentGroup: '📺 GlobalMedia',
   proxyPreference: 'outbound-first',
 };

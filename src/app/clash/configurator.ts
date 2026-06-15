@@ -275,12 +275,15 @@ export default class ConfigConfigurator {
           });
         });
       }
-      // 如果有 parentGroup，作为父组的子规则处理（父组会把当前规则一起排好）
+      // 如果有 parentGroup，确保父组先排好，再将当前子规则追加到 sortedRules
       if (rule.parentGroup) {
         const parent = defaultRuleDefinitions.find((r) => r.group === rule.parentGroup);
         if (parent) visitRule(parent);
-        // 父组的递归已将当前规则排好，直接返回
-        rulePlaced.add(rule.name);
+        if (!rulePlaced.has(rule.name)) {
+          rulePlaced.add(rule.name);
+          sortedRules.push(rule);
+        }
+        // 子规则不需要再递归展开它的子辈，因为父组的 visitRule 已经处理过了
         return;
       }
       // 放置当前规则
