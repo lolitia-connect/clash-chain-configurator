@@ -274,10 +274,10 @@ export default function App() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-50 border-b backdrop-blur-md">
+        <div className="container mx-auto px-3 sm:px-4 flex h-16 items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <h1 className="text-lg sm:text-2xl font-bold">Clash 链式配置生成器</h1>
+            <h1 className="font-bold text-lg">Clash 链式配置生成器</h1>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -303,7 +303,7 @@ export default function App() {
         </div>
       </header>
 
-      <div className="container mx-auto px-3 sm:px-4 pt-16 sm:pt-20 pb-4 space-y-4 sm:space-y-8">
+      <div className="container mx-auto px-3 sm:px-4 pt-16 pb-4 space-y-4 sm:space-y-8">
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 sm:p-4 text-xs sm:text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
           <p>
             🔒
